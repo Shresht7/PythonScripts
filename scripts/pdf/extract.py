@@ -35,16 +35,40 @@ def extract_text(input_path: str, output_dir: str):
     except Exception as e:
         print(f"Error extracting text from '{input_path}': {e}", file=sys.stderr)
 
+# EXTRACT IMAGES
+# --------------
+
+def extract_images_from_pdf(input_path: str, output_dir: str):
+    """Extracts images from a PDF and saves them to a directory."""
+    try:
+        reader = PdfReader(input_path)
+        
+        os.makedirs(output_dir, exist_ok=True)
+        
+        image_count = 0
+        for page_num, page in enumerate(reader.pages):
+            for image_file_object in page.images:
+                with open(os.path.join(output_dir, f"page{page_num+1}_{image_file_object.name}"), "wb") as fp:
+                    fp.write(image_file_object.data)
+                    image_count += 1
+        
+        if image_count > 0:
+            print(f"Successfully extracted {image_count} images from '{input_path}' to '{output_dir}'")
+
+    except Exception as e:
+        print(f"Error extracting images from '{input_path}': {e}", file=sys.stderr)
+
 # MAIN
 # ----
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Extract text from PDF files.",
-        epilog="Example: python extract.py \"docs/*.pdf\" extracted_text/",
+        description="Extract text and images from PDF files.",
+        epilog="Example: python extract.py \"docs/*.pdf\" extracted_content/ --images",
     )
     parser.add_argument("input", help="Path to the input PDF file or a glob pattern for multiple files.")
-    parser.add_argument("output", help="Path to the output directory to save the text files.")
+    parser.add_argument("output", help="Path to the output directory to save the extracted content.")
+    parser.add_argument("--images", action="store_true", help="Extract images from the PDF files.")
     return parser.parse_args()
 
 def main():
@@ -65,7 +89,15 @@ def main():
     # Process each file
     for input_file in input_files:
         if input_file.lower().endswith(".pdf"):
+            # Extract text
             extract_text(input_file, args.output)
+
+            # Extract images if requested
+            if args.images:
+                basename = os.path.basename(input_file)
+                filename, _ = os.path.splitext(basename)
+                image_output_dir = os.path.join(args.output, filename)
+                extract_images_from_pdf(input_file, image_output_dir)
         else:
             print(f"Skipping non-PDF file: '{input_file}'", file=sys.stderr)
 
