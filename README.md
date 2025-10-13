@@ -1,6 +1,6 @@
 # Python Scripts
 
-A collection of useful python scripts.
+A collection of semi-useful python scripts.
 
 ## Scripts
 
@@ -29,7 +29,7 @@ python scripts/images/convert.py <input> <output> [-h] [-f FORMAT] [--resize RES
 python scripts/images/convert.py "images/*.jpg" "converted/" --format png --resize 800 --quality 85
 ```
 
-### 2. PDF Content Extractor
+### 2. PDF Extractor
 
 A script to extract text, images, and metadata from PDF files.
 
@@ -53,7 +53,7 @@ python scripts/pdf/extract.py <input> <output> [-h] [--images] [--metadata]
 python scripts/pdf/extract.py "docs/*.pdf" "extracted_content/" --images --metadata
 ```
 
-### 3. PDF from Images Creator
+### 3. Collate Images into a PDF
 
 A script to create a PDF file from a collection of images.
 
