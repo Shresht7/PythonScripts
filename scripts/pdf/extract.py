@@ -3,6 +3,7 @@ import os
 import sys
 import argparse
 import glob
+import json
 
 from pypdf import PdfReader
 
@@ -58,17 +59,51 @@ def extract_images_from_pdf(input_path: str, output_dir: str):
     except Exception as e:
         print(f"Error extracting images from '{input_path}': {e}", file=sys.stderr)
 
+# EXTRACT METADATA
+# ----------------
+
+def extract_metadata(input_path: str, output_dir: str):
+    """Extracts metadata from a PDF and saves it to a JSON file."""
+    try:
+        reader = PdfReader(input_path)
+
+        metadata = reader.metadata
+        
+        meta_dict = {}
+        if metadata:
+            for key, value in metadata.items():
+                meta_dict[key] = str(value)
+
+        if not meta_dict:
+            print(f"No metadata found for '{input_path}'")
+            return
+
+        # Create the output path
+        basename = os.path.basename(input_path)
+        filename, _ = os.path.splitext(basename)
+        output_path = os.path.join(output_dir, f"{filename}.metadata.json")
+
+        # Save the metadata to a JSON file
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(meta_dict, f, indent=4)
+
+        print(f"Successfully extracted metadata from '{input_path}' to '{output_path}'")
+
+    except Exception as e:
+        print(f"Error extracting metadata from '{input_path}': {e}", file=sys.stderr)
+
 # MAIN
 # ----
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Extract text and images from PDF files.",
-        epilog="Example: python extract.py \"docs/*.pdf\" extracted_content/ --images",
+        description="Extract text, images, and metadata from PDF files.",
+        epilog="Example: python extract.py \"docs/*.pdf\" extracted_content/ --images --metadata",
     )
     parser.add_argument("input", help="Path to the input PDF file or a glob pattern for multiple files.")
     parser.add_argument("output", help="Path to the output directory to save the extracted content.")
     parser.add_argument("--images", action="store_true", help="Extract images from the PDF files.")
+    parser.add_argument("--metadata", action="store_true", help="Extract metadata from the PDF files.")
     return parser.parse_args()
 
 def main():
@@ -98,6 +133,10 @@ def main():
                 filename, _ = os.path.splitext(basename)
                 image_output_dir = os.path.join(args.output, filename)
                 extract_images_from_pdf(input_file, image_output_dir)
+
+            # Extract metadata if requested
+            if args.metadata:
+                extract_metadata(input_file, args.output)
         else:
             print(f"Skipping non-PDF file: '{input_file}'", file=sys.stderr)
 
