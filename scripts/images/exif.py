@@ -1,3 +1,11 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   pillow
+# ]
+# ///
+
+
 # Library
 import sys
 import argparse

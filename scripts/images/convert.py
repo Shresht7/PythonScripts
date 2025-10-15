@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   pillow
+# ]
+# ///
+
 # Library
 import os
 import sys

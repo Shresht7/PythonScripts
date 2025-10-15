@@ -75,6 +75,10 @@ python scripts/images/create_pdf.py <input> <output> [-h]
 python scripts/images/create_pdf.py "scans/*.jpg" "my_document.pdf"
 ```
 
+## 📕 References 
+
+- [Inline Script Metadata](https://packaging.python.org/en/latest/specifications/inline-script-metadata/#inline-script-metadata)
+
 ---
 
 ## 📄 License
