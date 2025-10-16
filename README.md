@@ -75,6 +75,28 @@ python scripts/images/create_pdf.py <input> <output> [-h]
 python scripts/images/create_pdf.py "scans/*.jpg" "my_document.pdf"
 ```
 
+### 4. EXIF Extractor
+
+A script to extract EXIF information from an image.
+
+**Location:** `scripts/images/exif.py`
+
+**Usage:**
+
+```sh
+python scripts/images/exif.py <input> [-f FORMAT]
+```
+
+**Arguments:**
+- `input`: Path to the input image file.
+- `-f, --format FORMAT`: The output format to use (e.g., `json` or `txt`).
+
+**Example:**
+
+```sh
+python scripts/images/exif.py "images/my_photo.jpg" --format json
+```
+
 ## 📕 References 
 
 - [Inline Script Metadata](https://packaging.python.org/en/latest/specifications/inline-script-metadata/#inline-script-metadata)
