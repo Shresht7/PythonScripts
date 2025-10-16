@@ -9,6 +9,7 @@
 # Library
 import sys
 import argparse
+import json
 
 from PIL import Image
 from PIL.ExifTags import TAGS
@@ -57,11 +58,12 @@ def main():
 
     info = exif(args.input)
     
-    if args.format == "json":
-        print(info)
-    else:
-        for tag, value in info.items():
-            print(f"{tag}: {value}")
+    if info:
+        if args.format == "json":
+            print(json.dumps(info, indent=4))
+        else:
+            for tag, value in info.items():
+                print(f"{tag}: {value}")
 
 
 # The main entrypoint of the script
