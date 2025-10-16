@@ -18,27 +18,36 @@ from PIL.ExifTags import TAGS
 # ----
 
 def exif(path: str):
-    """Extract EXIF information from the given image"""
-    try:
-        ret = {}
-        with Image.open(path) as img:
-            info = img._getexif()
-            if info:
-                for tag, value in info.items():
-                    tag_name = TAGS.get(tag, tag)
-                    if isinstance(value, bytes):
-                        # For bytes, try to decode, otherwise store as repr
-                        try:
-                            ret[tag_name] = value.decode('utf-8')
-                        except UnicodeDecodeError:
-                            ret[tag_name] = repr(value)
-                    else:
-                        ret[tag_name] = value
-        return ret
-    
-    # If the operation fails, show error and exit
-    except Exception as e:
-        print(f"An error occurred: {e}", file=sys.stderr)
+    """
+    Extracts EXIF information from the given image.
+
+    This function opens an image file, extracts its EXIF metadata, and returns it as a dictionary.
+    It handles different data types, including byte strings, to ensure the output is clean.
+
+    #### Parameters:
+        `path (str)`: The path to the input image file.
+
+    #### Returns:
+        `dict`: A dictionary containing the EXIF data, where keys are the tag names and values are the corresponding values.
+
+    #### Errors:
+        Propagate exceptions from the Pillow library or file system operations to be handled by the caller.
+    """
+    ret = {}
+    with Image.open(path) as img:
+        info = img._getexif()
+        if info:
+            for tag, value in info.items():
+                tag_name = TAGS.get(tag, tag)
+                if isinstance(value, bytes):
+                    # For bytes, try to decode, otherwise store as repr
+                    try:
+                        ret[tag_name] = value.decode('utf-8')
+                    except UnicodeDecodeError:
+                        ret[tag_name] = repr(value)
+                else:
+                    ret[tag_name] = value
+    return ret
 
 # MAIN
 # ----
@@ -68,4 +77,9 @@ def main():
 
 # The main entrypoint of the script
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+

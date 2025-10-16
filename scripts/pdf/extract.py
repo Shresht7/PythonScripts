@@ -19,86 +19,115 @@ from pypdf import PdfReader
 # ------------
 
 def extract_text(input_path: str, output_dir: str):
-    """Extracts text from a PDF and saves it to a text file."""
-    try:
-        reader = PdfReader(input_path)
+    """
+    Extracts all text from a given PDF file and saves it to a text file.
 
-        # Extract text from each page
-        text = ""
-        for page in reader.pages:
-            extracted = page.extract_text()
-            if extracted:
-                text += extracted + "\n"
+    The text file will has the same name as the input PDF, but with a `.txt` extension.
+    It is saved in the specified output directory.
 
-        # Create the output path
-        basename = os.path.basename(input_path)
-        filename, _ = os.path.splitext(basename)
-        output_path = os.path.join(output_dir, f"{filename}.txt")
+    #### Parameters:
+        `input_path (str)`: The path to the input PDF file.
+        `output_dir (str)`: The directory where the output text file will be saved.
 
-        # Save the text to a file
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(text)
+    #### Errors:
+        Propagate exceptions from the `pypdf` library or file system operations to be handled by the caller.
+    """
+    reader = PdfReader(input_path)
 
-        print(f"Successfully extracted text from '{input_path}' to '{output_path}'")
+    # Extract text from each page
+    text = ""
+    for page in reader.pages:
+        extracted = page.extract_text()
+        if extracted:
+            text += extracted + "\n"
 
-    except Exception as e:
-        print(f"Error extracting text from '{input_path}': {e}", file=sys.stderr)
+    # Create the output path
+    basename = os.path.basename(input_path)
+    filename, _ = os.path.splitext(basename)
+    output_path = os.path.join(output_dir, f"{filename}.txt")
+
+    # Save the text to a file
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(text)
+
+    print(f"Successfully extracted text from '{input_path}' to '{output_path}'")
 
 # EXTRACT IMAGES
 # --------------
 
 def extract_images_from_pdf(input_path: str, output_dir: str):
-    """Extracts images from a PDF and saves them to a directory."""
-    try:
-        reader = PdfReader(input_path)
-        
-        os.makedirs(output_dir, exist_ok=True)
-        
-        image_count = 0
-        for page_num, page in enumerate(reader.pages):
-            for image_file_object in page.images:
-                with open(os.path.join(output_dir, f"page{page_num+1}_{image_file_object.name}"), "wb") as fp:
-                    fp.write(image_file_object.data)
-                    image_count += 1
-        
-        if image_count > 0:
-            print(f"Successfully extracted {image_count} images from '{input_path}' to '{output_dir}'")
+    """
+    Extracts all images from a given PDF file and saves them to a directory.
 
-    except Exception as e:
-        print(f"Error extracting images from '{input_path}': {e}", file=sys.stderr)
+    The images are saved in the specified output directory. The directory will be
+    created if it does not exist.
+
+    #### Parameters:
+        `input_path (str)`: The path to the input PDF file.
+        `output_dir (str)`: The directory where the extracted images will be saved.
+
+    #### Errors:
+        Propagate exceptions from the `pypdf` library or file system operations to be handled by the caller.
+    """
+    reader = PdfReader(input_path)
+    
+    # Create the output directory if it does not exist
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Extract images from the PDF pages and write them to disk
+    image_count = 0
+    for page_num, page in enumerate(reader.pages):
+        for image_file_object in page.images:
+            with open(os.path.join(output_dir, f"page{page_num+1}_{image_file_object.name}"), "wb") as fp:
+                fp.write(image_file_object.data)
+                image_count += 1
+    
+    if image_count > 0:
+        print(f"Successfully extracted {image_count} images from '{input_path}' to '{output_dir}'")
 
 # EXTRACT METADATA
 # ----------------
 
 def extract_metadata(input_path: str, output_dir: str):
-    """Extracts metadata from a PDF and saves it to a JSON file."""
-    try:
-        reader = PdfReader(input_path)
+    """
+    Extracts metadata from a given PDF file and saves it to a JSON file.
 
-        metadata = reader.metadata
-        
-        meta_dict = {}
-        if metadata:
-            for key, value in metadata.items():
-                meta_dict[key] = str(value)
+    The metadata is saved in a JSON file with the same name as the input PDF,
+    but with a `.metadata.json` extension. The file will be saved in the
+    specified output directory.
 
-        if not meta_dict:
-            print(f"No metadata found for '{input_path}'")
-            return
+    #### Parameters:
+        `input_path (str)`: The path to the input PDF file.
+        `output_dir (str)`: The directory where the output JSON file will be saved.
 
-        # Create the output path
-        basename = os.path.basename(input_path)
-        filename, _ = os.path.splitext(basename)
-        output_path = os.path.join(output_dir, f"{filename}.metadata.json")
+    #### Errors:
+        Propagate exceptions from the `pypdf` library or file system operations to be handled by the caller.
+    """
+    reader = PdfReader(input_path)
 
-        # Save the metadata to a JSON file
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(meta_dict, f, indent=4)
+    # Retrieve the metadata from the PDF reader
+    metadata = reader.metadata
 
-        print(f"Successfully extracted metadata from '{input_path}' to '{output_path}'")
+    # Parse it into a dictionary    
+    meta_dict = {}
+    if metadata:
+        for key, value in metadata.items():
+            meta_dict[key] = str(value)
 
-    except Exception as e:
-        print(f"Error extracting metadata from '{input_path}': {e}", file=sys.stderr)
+    if not meta_dict:
+        print(f"No metadata found for '{input_path}'")
+        return
+
+    # Create the output path
+    basename = os.path.basename(input_path)
+    filename, _ = os.path.splitext(basename)
+    output_path = os.path.join(output_dir, f"{filename}.metadata.json")
+
+    # Save the metadata to a JSON file
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(meta_dict, f, indent=4)
+
+    print(f"Successfully extracted metadata from '{input_path}' to '{output_path}'")
 
 # MAIN
 # ----
@@ -150,4 +179,8 @@ def main():
 
 # The main entrypoint of the script
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)

@@ -18,17 +18,19 @@ from PIL import Image
 
 def convert_image(input: str, output: str, resize: int | None = None, quality: int | None = None):
     """
-    Converts an image from one format to another, with optional resizing and quality control
-    
+    Converts an image from one format to another, with optional resizing and quality control.
+
+    This function takes an input image and converts it to the desired output format.
+    It can also resize the image and adjust the quality for JPEG files.
+
     #### Parameters:
         `input (str)`: Path to the input image file.
         `output (str)`: Path to save the converted image.
         `resize (int | None)`: The width to resize the image to (maintaining aspect ratio).
         `quality (int | None)`: Set the quality of the output image (1-100, for JPG/JPEG).
 
-
     #### Errors:
-        FileNotFoundError: If the input file does not exist.
+        Propagate exceptions from the Pillow library or file system operations to be handled by the caller.
     """
 
     # Check if the input path actually exists
@@ -40,31 +42,25 @@ def convert_image(input: str, output: str, resize: int | None = None, quality: i
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
 
-    try:
-        # Perform the conversion
-        with Image.open(input) as img:
-            # Resize the image if a width is provided
-            if resize:
-                width, height = img.size
-                aspect_ratio = height / width
-                new_width = resize
-                new_height = int(new_width * aspect_ratio)
-                img = img.resize((new_width, new_height))
+    # Perform the conversion
+    with Image.open(input) as img:
+        # Resize the image if a width is provided
+        if resize:
+            width, height = img.size
+            aspect_ratio = height / width
+            new_width = resize
+            new_height = int(new_width * aspect_ratio)
+            img = img.resize((new_width, new_height))
 
-            print(f"Converting '{input}' to '{output}'... ", end="")
+        print(f"Converting '{input}' to '{output}'... ", end="")
 
-            # Set quality if provided (for JPEG)
-            if quality and output.lower().endswith(('.jpg', '.jpeg')):
-                img.save(output, quality=quality)
-            else:
-                img.save(output)
+        # Set quality if provided (for JPEG)
+        if quality and output.lower().endswith(('.jpg', '.jpeg')):
+            img.save(output, quality=quality)
+        else:
+            img.save(output)
 
-            print("☑️")
-
-    # If the operation fails, show the error and exit
-    except Exception as e:
-        print("❌")
-        raise e
+        print("☑️")
 
 # MAIN
 # ----

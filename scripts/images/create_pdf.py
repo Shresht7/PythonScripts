@@ -17,29 +17,38 @@ from PIL import Image
 # ----------
 
 def create_pdf(image_files: list[str], output_path: str):
-    """Creates a PDF from a list of image files."""
-    try:
-        # Ensure there are images to process
-        if not image_files:
-            print("No image files found.", file=sys.stderr)
-            return
+    """
+    Creates a PDF from a list of image files.
 
-        # Open all images
-        images = [Image.open(f) for f in image_files]
+    This function takes a list of image file paths and combines them into a single PDF document.
+    The images are appended in the order they appear in the input list.
 
-        # Get the first image
-        first_image = images[0]
+    #### Parameters:
+        `image_files (list[str])`: A list of paths to the image files.
+        `output_path (str)`: The path to save the output PDF file.
 
-        # Get the rest of the images
-        other_images = images[1:]
+    #### Errors:
+        `FileNotFoundError`: If any of the input image files cannot be found.
+        `Exception`: Catches and reports other potential errors during PDF creation.
+    """
+    # Ensure there are images to process
+    if not image_files:
+        print("No image files found.", file=sys.stderr)
+        return
 
-        # Save the first image as a PDF, and append the rest
-        first_image.save(output_path, "PDF", resolution=100.0, save_all=True, append_images=other_images)
+    # Open all images
+    images = [Image.open(f) for f in image_files]
 
-        print(f"Successfully created PDF: {output_path} ☑️")
+    # Get the first image
+    first_image = images[0]
 
-    except Exception as e:
-        print(f"Error creating PDF: {e}", file=sys.stderr)
+    # Get the rest of the images
+    other_images = images[1:]
+
+    # Save the first image as a PDF, and append the rest
+    first_image.save(output_path, "PDF", resolution=100.0, save_all=True, append_images=other_images)
+
+    print(f"Successfully created PDF: {output_path} ☑️")
 
 # MAIN
 # ----
@@ -68,4 +77,8 @@ def main():
 
 # The main entrypoint of the script
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
