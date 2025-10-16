@@ -35,6 +35,11 @@ def convert_image(input: str, output: str, resize: int | None = None, quality: i
     if not os.path.exists(input):
         raise FileNotFoundError(f"Input file not found at '{input}'")
 
+    # Create the output directory if it doesn't exist
+    output_dir = os.path.dirname(output)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+
     try:
         # Perform the conversion
         with Image.open(input) as img:
