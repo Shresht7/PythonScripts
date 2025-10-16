@@ -25,7 +25,14 @@ def exif(path: str):
             if info:
                 for tag, value in info.items():
                     tag_name = TAGS.get(tag, tag)
-                    ret[tag_name] = value
+                    if isinstance(value, bytes):
+                        # For bytes, try to decode, otherwise store as repr
+                        try:
+                            ret[tag_name] = value.decode('utf-8')
+                        except UnicodeDecodeError:
+                            ret[tag_name] = repr(value)
+                    else:
+                        ret[tag_name] = value
         return ret
     
     # If the operation fails, show error and exit
