@@ -17,13 +17,25 @@ from PIL import Image
 # -------------
 
 def convert_image(input: str, output: str, resize: int | None = None, quality: int | None = None):
-    """Converts an image from one format to another, with optional resizing and quality control."""
-    try:
-        # Check if the input path actually exists
-        if not os.path.exists(input):
-            print(f"Error: Input file not found at '{input}'", file=sys.stderr)
-            sys.exit(1)
+    """
+    Converts an image from one format to another, with optional resizing and quality control
+    
+    #### Parameters:
+        `input (str)`: Path to the input image file.
+        `output (str)`: Path to save the converted image.
+        `resize (int | None)`: The width to resize the image to (maintaining aspect ratio).
+        `quality (int | None)`: Set the quality of the output image (1-100, for JPG/JPEG).
 
+
+    #### Errors:
+        FileNotFoundError: If the input file does not exist.
+    """
+
+    # Check if the input path actually exists
+    if not os.path.exists(input):
+        raise FileNotFoundError(f"Input file not found at '{input}'")
+
+    try:
         # Perform the conversion
         with Image.open(input) as img:
             # Resize the image if a width is provided
@@ -42,21 +54,20 @@ def convert_image(input: str, output: str, resize: int | None = None, quality: i
             else:
                 img.save(output)
 
-            print("Conversion Successful ☑️")
+            print("☑️")
 
     # If the operation fails, show the error and exit
     except Exception as e:
-        print("Conversion Failed ❌")
-        print(f"An error occurred: {e}", file=sys.stderr)
-        sys.exit(1)
+        print("❌")
+        raise e
 
 # MAIN
 # ----
 
 def parse_args():
+    """Parses the command-line arguments"""
     parser = argparse.ArgumentParser(
         description="Convert an image from one format to another. Can also handle bulk conversion using glob patterns.",
-        epilog="Examples:\n  python convert.py input.jpg output.png\n  python convert.py \"images/*.jpg\" converted/ --format png --resize 800 --quality 85",
     )
     parser.add_argument("input", help="Path to the input image file or a glob pattern for multiple files.")
     parser.add_argument("output", help="Path to save the converted image or a directory for bulk conversion.")
@@ -109,4 +120,8 @@ def main():
 
 # The main entrypoint of the script
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
