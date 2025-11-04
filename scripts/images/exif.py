@@ -1,3 +1,21 @@
+"""
+A script to extract EXIF information from an image.
+
+Usage:
+```sh
+python scripts/images/exif.py <input> [-f FORMAT]
+```
+
+Arguments:
+- `input`: Path to the input image file.
+- `-f, --format FORMAT`: The output format to use (e.g., `json` or `txt`).
+
+Example:
+```sh
+python scripts/images/exif.py "images/my_photo.jpg" --format json
+```
+"""
+
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [

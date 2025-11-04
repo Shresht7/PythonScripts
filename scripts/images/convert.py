@@ -1,3 +1,24 @@
+"""
+A script to convert images from one format to another, with options for resizing and quality control.
+
+Usage:
+```sh
+python scripts/images/convert.py <input> <output> [-h] [-f FORMAT] [--resize RESIZE] [--quality QUALITY]
+```
+
+Arguments:
+- `input`: Path to the input image file or a glob pattern for multiple files.
+- `output`: Path to save the converted image or a directory for bulk conversion.
+- `-f, --format FORMAT`: The output format for bulk conversion (e.g., `png`, `jpg`).
+- `--resize RESIZE`: Resize the output image to a specific width (maintaining aspect ratio).
+- `--quality QUALITY`: Set the quality of the output image (1-100, for JPEG).
+
+Example:
+```sh
+python scripts/images/convert.py "images/*.jpg" "converted/" --format png --resize 800 --quality 85
+```
+"""
+
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [

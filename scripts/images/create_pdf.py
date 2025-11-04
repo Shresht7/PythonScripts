@@ -1,3 +1,21 @@
+"""
+A script to create a PDF file from a collection of images.
+
+Usage:
+```sh
+python scripts/images/create_pdf.py <input> <output> [-h]
+```
+
+Arguments:
+- `input`: Glob pattern for input images (e.g., `"images/*.png"`).
+- `output`: Path to the output PDF file.
+
+Example:
+```sh
+python scripts/images/create_pdf.py "scans/*.jpg" "my_document.pdf"
+```
+"""
+
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [

@@ -1,3 +1,23 @@
+"""
+A script to extract text, images, and metadata from PDF files.
+
+Usage:
+```sh
+python scripts/pdf/extract.py <input> <output> [-h] [--images] [--metadata]
+```
+
+Arguments:
+- `input`: Path to the input PDF file or a glob pattern for multiple files.
+- `output`: Path to the output directory to save the extracted content.
+- `--images`: Extract images from the PDF files.
+- `--metadata`: Extract metadata from the PDF files.
+
+Example:
+```sh
+python scripts/pdf/extract.py "docs/*.pdf" "extracted_content/" --images --metadata
+```
+"""
+
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [

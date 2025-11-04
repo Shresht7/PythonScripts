@@ -1,3 +1,7 @@
+"""
+A script to list serial ports and identify potential ESP32 devices.
+"""
+
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
