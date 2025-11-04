@@ -21,7 +21,8 @@ python scripts/pdf/extract.py "docs/*.pdf" "extracted_content/" --images --metad
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
-#   "pypdf"
+#   "pypdf",
+#   "pillow"
 # ]
 # ///
 
