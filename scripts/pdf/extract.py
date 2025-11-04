@@ -200,6 +200,10 @@ def main():
 
 # The main entrypoint of the script
 if __name__ == "__main__":
+    if '--help' in sys.argv or '-h' in sys.argv:
+        print(__doc__)
+        sys.exit(0)
+
     try:
         main()
     except Exception as e:
