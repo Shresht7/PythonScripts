@@ -85,6 +85,11 @@ if __name__ == "__main__":
         print(result)
         sys.exit(0)
 
+    # Disable color if requested or if output is not a terminal
+    if '--no-color' in sys.argv or '-n' in sys.argv or os.environ.get('NO_COLOR') or not sys.stdout.isatty():
+        # Override ANSI codes with empty strings
+        BOLD = DIM = ITALIC = UNDERLINE = INVERT = YELLOW = CYAN = MAGENTA = RESET = ""
+
     # Print the result
     for entry in result:
         print_definitions(entry)
