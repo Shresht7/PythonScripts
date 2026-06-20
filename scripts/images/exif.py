@@ -4,6 +4,8 @@ A script to extract EXIF information from an image.
 Usage:
 ```sh
 python scripts/images/exif.py <input> [-f FORMAT]
+# or interactively:
+python scripts/images/exif.py
 ```
 
 Arguments:
@@ -70,14 +72,38 @@ def exif(path: str):
 # MAIN
 # ----
 
+def need(value: str | None, label: str, parser: argparse.ArgumentParser) -> str:
+    """
+    Helper function to ensure a required value is provided, either as an argument or through user input.
+    """
+    # If a value is already provided (e.g., through command-line arguments), return it as is
+    if value:
+        return value
+    
+    # If we're in a non-interactive environment, we can't prompt the user, so we should raise an error
+    if not sys.stdin.isatty():
+        parser.error(f"Missing required argument: {label}")
+
+    # Prompt the user for input if not provided as an argument
+    entered = input(f"{label}: ").strip()
+    if not entered:
+        parser.error(f"Missing required argument: {label}")
+
+    return entered
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Extract EXIF information from an image.",
         epilog="Example: python exif.py image.jpg",
     )
-    parser.add_argument("input", help="Path to the input image file.")
+    parser.add_argument("input", nargs="?", help="Path to the input image file.")
     parser.add_argument('-f', '--format', help="The output format to use. (e.g. json or txt)")
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    # Ensure required arguments are provided
+    args.input = need(args.input, "Input image file", parser)
+
+    return args
 
 def main():
     """Main function to parse arguments and extract EXIF information"""
