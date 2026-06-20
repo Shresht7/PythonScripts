@@ -20,6 +20,12 @@ def lookup(word: str):
     """
     api_url=f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
     response = requests.get(api_url)
+
+    if response.status_code != 200:
+        print(f"Error: Unable to fetch definition for '{word}'. HTTP Status Code: {response.status_code}", file=sys.stderr)
+        print(f"Response: {response.text}", file=sys.stderr)
+        sys.exit(1)
+
     return response.json()
 
 def print_definitions(entry):
