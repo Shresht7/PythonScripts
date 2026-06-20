@@ -91,7 +91,15 @@ def need(value: str | None, label: str, parser: argparse.ArgumentParser) -> str:
 
     return entered
 
+
+def ask_optional_text(label: str) -> str | None:
+    """Prompt for an optional text value, allowing the user to leave it blank."""
+    entered = input(f"{label} (optional - leave blank for default): ").strip()
+    return entered or None
+
 def parse_args():
+    should_prompt_for_optional = len(sys.argv) == 1
+
     parser = argparse.ArgumentParser(
         description="Extract EXIF information from an image.",
         epilog="Example: python exif.py image.jpg",
@@ -103,6 +111,9 @@ def parse_args():
     # Ensure required arguments are provided
     args.input = need(args.input, "Input image file", parser)
 
+    if should_prompt_for_optional and args.format is None:
+        args.format = ask_optional_text("Output format")
+
     return args
 
 def main():
@@ -112,7 +123,7 @@ def main():
     info = exif(args.input)
     
     if info:
-        if args.format == "json":
+        if args.format and args.format.lower() == "json":
             print(json.dumps(info, indent=4))
         else:
             for tag, value in info.items():
