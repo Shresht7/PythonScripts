@@ -153,16 +153,57 @@ def extract_metadata(input_path: str, output_dir: str):
 # MAIN
 # ----
 
+def need(value: str | None, label: str, parser: argparse.ArgumentParser) -> str:
+    """Ensure a required value is provided, either as an argument or through user input."""
+    if value:
+        return value
+
+    if not sys.stdin.isatty():
+        parser.error(f"Missing required argument: {label}")
+
+    entered = input(f"{label}: ").strip()
+    if not entered:
+        parser.error(f"Missing required argument: {label}")
+
+    return entered
+
+
+def ask_optional_bool(label: str) -> bool:
+    """Prompt for an optional yes/no value, defaulting to no when left blank."""
+    entered = input(f"{label}? [y/N]: ").strip().lower()
+    if not entered:
+        return False
+    if entered in {"y", "yes"}:
+        return True
+    if entered in {"n", "no"}:
+        return False
+
+    print(f"Error: {label} must be answered with y or n", file=sys.stderr)
+    sys.exit(1)
+
 def parse_args():
+    should_prompt_for_optional = len(sys.argv) == 1
+
     parser = argparse.ArgumentParser(
         description="Extract text, images, and metadata from PDF files.",
         epilog="Example: python extract.py \"docs/*.pdf\" extracted_content/ --images --metadata",
     )
-    parser.add_argument("input", help="Path to the input PDF file or a glob pattern for multiple files.")
-    parser.add_argument("output", help="Path to the output directory to save the extracted content.")
+    parser.add_argument("input", nargs="?", help="Path to the input PDF file or a glob pattern for multiple files.")
+    parser.add_argument("output", nargs="?", help="Path to the output directory to save the extracted content.")
     parser.add_argument("--images", action="store_true", help="Extract images from the PDF files.")
     parser.add_argument("--metadata", action="store_true", help="Extract metadata from the PDF files.")
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    args.input = need(args.input, "Input PDF path or glob pattern", parser)
+    args.output = need(args.output, "Output directory", parser)
+
+    if should_prompt_for_optional:
+        if not args.images:
+            args.images = ask_optional_bool("Extract images")
+        if not args.metadata:
+            args.metadata = ask_optional_bool("Extract metadata")
+
+    return args
 
 def main():
     """Main function to parse arguments and run the extraction."""
