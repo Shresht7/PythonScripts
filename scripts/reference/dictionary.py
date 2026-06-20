@@ -1,5 +1,5 @@
 """
-Lookup a word definition using the Free Dictionary API
+Lookup a word definition using the Free Dictionary API (https://dictionaryapi.dev/)
 """
 
 # /// script
