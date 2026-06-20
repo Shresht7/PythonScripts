@@ -11,6 +11,7 @@ Lookup a word definition using the Free Dictionary API
 
 import sys
 import requests
+import json
 
 def lookup(word: str):
     """
@@ -60,6 +61,10 @@ if __name__ == "__main__":
     word = sys.argv[1]
     result = lookup(word)
 
+    if '--json' in sys.argv or '-j' in sys.argv:
+        print(json.dumps(result, indent=2))
+        sys.exit(0)
+    
     # Print the result
     for entry in result:
         print_definitions(entry)
