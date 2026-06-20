@@ -46,10 +46,18 @@ def print_definitions(entry):
         for definition in definitions:
             definition_text = definition.get("definition", "")
             print(f"\n{YELLOW} * {MAGENTA}{DIM}({part_of_speech}){RESET} {definition_text}")
+
             example = definition.get("example", "")
             if example:
                 underlined_example = example.replace(word, f"{BOLD}{UNDERLINE}{word}{RESET}{DIM}{ITALIC}")
                 print(f"   {DIM}example: {ITALIC}\"{underlined_example}\"{RESET}")
+
+            synonyms = definition.get("synonyms", [])
+            if synonyms:
+                print(f"   {DIM}synonyms: {GREEN}{', '.join(synonyms)}{RESET}")
+            antonyms = definition.get("antonyms", [])
+            if antonyms:
+                print(f"   {DIM}antonyms: {RED}{', '.join(antonyms)}{RESET}")
     print()
 
 # ANSI Escape Codes
@@ -58,6 +66,8 @@ DIM="\033[2m"
 ITALIC="\033[3m"
 UNDERLINE="\033[4m"
 INVERT="\033[7m"
+RED="\033[31m"
+GREEN="\033[32m"
 YELLOW="\033[33m"
 CYAN="\033[36m"
 MAGENTA="\033[35m"
@@ -94,7 +104,7 @@ if __name__ == "__main__":
     # Disable color if requested or if output is not a terminal
     if '--no-color' in sys.argv or '-n' in sys.argv or os.environ.get('NO_COLOR') or not sys.stdout.isatty():
         # Override ANSI codes with empty strings
-        BOLD = DIM = ITALIC = UNDERLINE = INVERT = YELLOW = CYAN = MAGENTA = RESET = ""
+        BOLD = DIM = ITALIC = UNDERLINE = INVERT = RED = GREEN = YELLOW = CYAN = MAGENTA = RESET = ""
 
     # Print the result
     for entry in result:
