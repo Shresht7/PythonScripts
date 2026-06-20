@@ -10,6 +10,7 @@ Lookup a word definition using the Free Dictionary API
 # ///
 
 import sys
+import os
 import requests
 import json
 
@@ -29,19 +30,32 @@ def print_definitions(entry):
     phonetics = entry.get("phonetics", [])
     meanings = entry.get("meanings", [])
 
-    print(f"{word}")
+    print(f"\n{BOLD}{INVERT} {word} {RESET}")
     if phonetics:
-        print(f"\nPhonetics: {', '.join(p.get('text', '') for p in phonetics)}")
+        print(f"\n{CYAN}{DIM}{', '.join(p.get('text', '') for p in phonetics)}{RESET}")
     
     for meaning in meanings:
         part_of_speech = meaning.get("partOfSpeech", "")
         definitions = meaning.get("definitions", [])
         for definition in definitions:
             definition_text = definition.get("definition", "")
-            print(f"\n * ({part_of_speech}) {definition_text}")
+            print(f"\n{YELLOW} * {MAGENTA}{DIM}({part_of_speech}){RESET} {definition_text}")
             example = definition.get("example", "")
             if example:
-                print(f"   Example: \"{example}\"")
+                underlined_example = example.replace(word, f"{BOLD}{UNDERLINE}{word}{RESET}{DIM}{ITALIC}")
+                print(f"   {DIM}example: {ITALIC}\"{underlined_example}\"{RESET}")
+    print()
+
+# ANSI Escape Codes
+BOLD="\033[1m"
+DIM="\033[2m"
+ITALIC="\033[3m"
+UNDERLINE="\033[4m"
+INVERT="\033[7m"
+YELLOW="\033[33m"
+CYAN="\033[36m"
+MAGENTA="\033[35m"
+RESET="\033[0m"
 
 # MAIN
 # ----
@@ -64,7 +78,7 @@ if __name__ == "__main__":
     if '--json' in sys.argv or '-j' in sys.argv:
         print(json.dumps(result, indent=2))
         sys.exit(0)
-    
+
     # Print the result
     for entry in result:
         print_definitions(entry)
