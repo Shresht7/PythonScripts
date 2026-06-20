@@ -75,8 +75,14 @@ if __name__ == "__main__":
     word = sys.argv[1]
     result = lookup(word)
 
+    # Print the result in JSON format if requested
     if '--json' in sys.argv or '-j' in sys.argv:
         print(json.dumps(result, indent=2))
+        sys.exit(0)
+
+    # Print the raw result if requested
+    if '--raw' in sys.argv or '-r' in sys.argv:
+        print(result)
         sys.exit(0)
 
     # Print the result
