@@ -20,6 +20,28 @@ def lookup(word: str):
     response = requests.get(api_url)
     return response.json()
 
+def print_definitions(entry):
+    """
+    Prints the definitions of a word entry.
+    """
+    word = entry.get("word", "")
+    phonetics = entry.get("phonetics", [])
+    meanings = entry.get("meanings", [])
+
+    print(f"{word}")
+    if phonetics:
+        print(f"\nPhonetics: {', '.join(p.get('text', '') for p in phonetics)}")
+    
+    for meaning in meanings:
+        part_of_speech = meaning.get("partOfSpeech", "")
+        definitions = meaning.get("definitions", [])
+        for definition in definitions:
+            definition_text = definition.get("definition", "")
+            print(f"\n * ({part_of_speech}) {definition_text}")
+            example = definition.get("example", "")
+            if example:
+                print(f"   Example: \"{example}\"")
+
 # MAIN
 # ----
 
@@ -39,4 +61,5 @@ if __name__ == "__main__":
     result = lookup(word)
 
     # Print the result
-    print(result)
+    for entry in result:
+        print_definitions(entry)
