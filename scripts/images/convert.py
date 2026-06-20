@@ -4,6 +4,8 @@ A script to convert images from one format to another, with options for resizing
 Usage:
 ```sh
 python scripts/images/convert.py <input> <output> [-h] [-f FORMAT] [--resize RESIZE] [--quality QUALITY]
+# or interactively:
+python scripts/images/convert.py
 ```
 
 Arguments:
@@ -17,10 +19,23 @@ Example:
 ```sh
 python scripts/images/convert.py "images/*.jpg" "converted/" --format png --resize 800 --quality 85
 ```
+
+or interactively:
+
+```sh
+$ python scripts/images/convert.py
+Input file or glob pattern: images/*.jpg
+Output file or directory: converted/
+format (required for directory output, e.g., png, jpg): png
+Resize width (optional):
+Quality (optional):
+Converting 'images/photo1.jpg' to 'converted/photo1.png'... ☑️
+...
+```
 """
 
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.12"
 # dependencies = [
 #   "pillow"
 # ]
@@ -83,20 +98,96 @@ def convert_image(input: str, output: str, resize: int | None = None, quality: i
 
         print("☑️")
 
-# MAIN
-# ----
+# PARSE ARGS
+# ----------
+
+def need(value: str | None, label: str, parser: argparse.ArgumentParser) -> str:
+    """
+    Helper function to ensure a required value is provided, either as an argument or through user input.
+    """
+
+    # If the value is already provided, return it as is
+    if value:
+        return value
+    
+    # Non-interactive sessions should fail fast instead of waiting for input
+    if not sys.stdin.isatty():
+        parser.error(f"Missing required argument: {label}")
+
+    # Prompt the user for input if not provided as an argument
+    entered = input(f"{label}: ").strip()
+    if not entered:
+        parser.error(f"Missing required argument: {label}")
+
+    return entered
+
+def need_format(value: str | None) -> str:
+    """Prompt for an output format when bulk conversion is requested."""
+    if value:
+        return value
+
+    if not sys.stdin.isatty():
+        print("Error: Output format must be specified with --format for bulk conversion", file=sys.stderr)
+        sys.exit(1)
+
+    entered = input("format (required for directory output, e.g., png, jpg): ").strip().lstrip(".")
+    if not entered:
+        print("Error: Output format must be specified with --format for bulk conversion", file=sys.stderr)
+        sys.exit(1)
+
+    return entered
+
+def ask_optional_int(label: str) -> int | None:
+    """Prompt for an optional integer value, allowing the user to leave it blank."""
+    entered = input(f"{label} (optional - leave blank for default): ").strip()
+    if not entered:
+        return None
+
+    try:
+        return int(entered)
+    except ValueError:
+        print(f"Error: {label} must be an integer", file=sys.stderr)
+        sys.exit(1)
 
 def parse_args():
     """Parses the command-line arguments"""
+
+    should_prompt_for_optional = len(sys.argv) == 1 # No arguments provided, so we will prompt for all values interactively
+
     parser = argparse.ArgumentParser(
         description="Convert an image from one format to another. Can also handle bulk conversion using glob patterns.",
     )
-    parser.add_argument("input", help="Path to the input image file or a glob pattern for multiple files.")
-    parser.add_argument("output", help="Path to save the converted image or a directory for bulk conversion.")
+    parser.add_argument("input", nargs="?", help="Path to the input image file or a glob pattern for multiple files.")
+    parser.add_argument("output", nargs="?", help="Path to save the converted image or a directory for bulk conversion.")
     parser.add_argument("-f", "--format", help="The output format to use for bulk conversion (e.g., png, jpg).")
     parser.add_argument("-r", "--resize", type=int, help="Resize the output image to a specific width (maintaining aspect ratio).")
     parser.add_argument("-q", "--quality", type=int, help="Set the quality of the output image (1-100, for JPEG).")
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    # Ensure required arguments are provided, prompting the user if necessary
+    args.input = need(args.input, "Input file or glob pattern", parser)
+    args.output = need(args.output, "Output file or directory", parser)
+
+    # When in interactive mode, also prompt for optional values if they were not provided as arguments
+    if should_prompt_for_optional:
+        if args.resize is None:
+            args.resize = ask_optional_int("Resize width")
+        if args.quality is None:
+            args.quality = ask_optional_int("Quality")
+
+    # If the output is a directory (or we have multiple input files), we need to ensure the format is specified
+    if os.path.isdir(args.output) and not args.format:
+        if should_prompt_for_optional and sys.stdin.isatty():
+            entered = input("format (required for directory output, e.g., png, jpg): ").strip().lstrip(".")
+            if entered:
+                args.format = entered
+        if not args.format:
+            parser.error("Output format must be specified with --format for bulk conversion")
+
+    return args
+
+# MAIN
+# ----
 
 def main():
     """Main function to parse arguments and run the conversion"""
@@ -110,12 +201,16 @@ def main():
         print(f"Error: No input files found for pattern '{args.input}'", file=sys.stderr)
         sys.exit(1)
 
+    bulk_output = os.path.isdir(args.output) or len(input_files) > 1
+
     # If the output is a directory, bulk convert
-    if os.path.isdir(args.output):
+    if bulk_output:
 
         # Make sure the format is specified
-        if not args.format:
-            print("Error: Output format must be specified with --format for bulk conversion", file=sys.stderr)
+        args.format = need_format(args.format)
+
+        if os.path.exists(args.output) and not os.path.isdir(args.output):
+            print(f"Error: Output path exists and is not a directory: '{args.output}'", file=sys.stderr)
             sys.exit(1)
 
         # Create the output directory if it doesn't exist
