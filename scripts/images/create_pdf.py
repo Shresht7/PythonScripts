@@ -4,6 +4,8 @@ A script to create a PDF file from a collection of images.
 Usage:
 ```sh
 python scripts/images/create_pdf.py <input> <output> [-h]
+# or interactively:
+python scripts/images/create_pdf.py
 ```
 
 Arguments:
@@ -24,7 +26,6 @@ python scripts/images/create_pdf.py "scans/*.jpg" "my_document.pdf"
 # ///
 
 # Library
-import os
 import sys
 import argparse
 import glob
@@ -68,17 +69,45 @@ def create_pdf(image_files: list[str], output_path: str):
 
     print(f"Successfully created PDF: {output_path} ☑️")
 
-# MAIN
-# ----
+# PARSE ARGS
+# ----------
+
+def need(value: str | None, label: str, parser: argparse.ArgumentParser) -> str:
+    """
+    Helper function to ensure a required value is provided, either as an argument or through user input.
+    """
+    # If a value is already provided (e.g., through command-line arguments), return it as is
+    if value:
+        return value
+    
+    # If we're in a non-interactive environment, we can't prompt the user, so we should raise an error
+    if not sys.stdin.isatty():
+        parser.error(f"Missing required argument: {label}")
+
+    # Prompt the user for input if not provided as an argument
+    entered = input(f"{label}: ").strip()
+    if not entered:
+        parser.error(f"Missing required argument: {label}")
+
+    return entered
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Create a PDF from a collection of images.",
         epilog="Example: python create_pdf.py \"images/*.png\" my_album.pdf",
     )
-    parser.add_argument("input", help="Glob pattern for input images (e.g., \"images/*.png\").")
-    parser.add_argument("output", help="Path to the output PDF file.")
-    return parser.parse_args()
+    parser.add_argument("input", nargs="?", help="Glob pattern for input images (e.g., \"images/*.png\").")
+    parser.add_argument("output", nargs="?", help="Path to the output PDF file.")
+    args = parser.parse_args()
+
+    # Ensure required arguments are provided
+    args.input = need(args.input, "Input glob pattern", parser)
+    args.output = need(args.output, "Output PDF path", parser)
+
+    return args
+
+# MAIN
+# ----
 
 def main():
     """Main function to parse arguments and run the PDF creation."""
