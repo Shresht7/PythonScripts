@@ -76,19 +76,25 @@ RESET="\033[0m"
 # MAIN
 # ----
 
+def extract_word(args):
+    """
+    Extracts the word to lookup from command-line arguments.
+    """
+    for arg in args:
+        if not arg.startswith('-'):
+            return arg
+    return None
+
 if __name__ == "__main__":
     # Check for help flag
     if '--help' in sys.argv or '-h' in sys.argv:
         print(__doc__)
         sys.exit(0)
 
-    # Check if a word is provided as an argument
-    if len(sys.argv) < 2:
-        print("Error: Please provide a word to look up.", file=sys.stderr)
-        sys.exit(1)
+    # Extract the word to lookup from command-line arguments or prompt the user
+    word = extract_word(sys.argv[1:]) or input("lookup: ").strip()
 
-    # Lookup the word provided as an argument
-    word = sys.argv[1]
+    # Lookup the word and get the api results
     result = lookup(word)
 
     # Print the result in JSON format if requested
