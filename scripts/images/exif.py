@@ -31,6 +31,7 @@ def main(
         )],
         
         format: Annotated[Literal["json", "text"], Spec(
+            short="f",
             help="The output format for EXIF information",
         )] = "text",
     ):
