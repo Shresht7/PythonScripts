@@ -1,36 +1,46 @@
 """
-A script to create a PDF file from a collection of images.
-
-Usage:
-```sh
-python scripts/images/create_pdf.py <input> <output> [-h]
-# or interactively:
-python scripts/images/create_pdf.py
-```
-
-Arguments:
-- `input`: Glob pattern for input images (e.g., `"images/*.png"`).
-- `output`: Path to the output PDF file.
-
-Example:
-```sh
-python scripts/images/create_pdf.py "scans/*.jpg" "my_document.pdf"
-```
+A script to create a PDF file from a collection of images
 """
 
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.12"
 # dependencies = [
-#   "pillow"
+#   "pillow",
+#   "defcmd @ git+https://github.com/Shresht7/defcmd.git@v0.5.1"
 # ]
 # ///
 
 # Library
 import sys
-import argparse
 import glob
+from defcmd import cmd, Spec
+from typing import Annotated
 
 from PIL import Image
+
+@cmd
+def main(
+        input: Annotated[str, Spec(
+            help="Glob pattern for input images (e.g., \"images/*.png\").",
+            prompt="Input glob pattern (e.g., \"images/*.png\")",
+        )],
+    
+        output: Annotated[str, Spec(
+            help="Path to the output PDF file.",
+            prompt="Output PDF path",
+        )] = "output.pdf",
+    ):
+
+    """A script to create a PDF file from a collection of images."""
+
+    # Get and sort the input files
+    input_files = sorted(glob.glob(input))
+
+    if not input_files:
+        print(f"\x1b[31mError: No input files found for pattern '{input}'\x1b[0m", file=sys.stderr)
+        raise SystemExit(1)
+
+    create_pdf(input_files, output)
 
 # CREATE PDF
 # ----------
@@ -69,67 +79,9 @@ def create_pdf(image_files: list[str], output_path: str):
 
     print(f"Successfully created PDF: {output_path} ☑️")
 
-# PARSE ARGS
-# ----------
-
-def need(value: str | None, label: str, parser: argparse.ArgumentParser) -> str:
-    """
-    Helper function to ensure a required value is provided, either as an argument or through user input.
-    """
-    # If a value is already provided (e.g., through command-line arguments), return it as is
-    if value:
-        return value
-    
-    # If we're in a non-interactive environment, we can't prompt the user, so we should raise an error
-    if not sys.stdin.isatty():
-        parser.error(f"Missing required argument: {label}")
-
-    # Prompt the user for input if not provided as an argument
-    entered = input(f"{label}: ").strip()
-    if not entered:
-        parser.error(f"Missing required argument: {label}")
-
-    return entered
-
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Create a PDF from a collection of images.",
-        epilog="Example: python create_pdf.py \"images/*.png\" my_album.pdf",
-    )
-    parser.add_argument("input", nargs="?", help="Glob pattern for input images (e.g., \"images/*.png\").")
-    parser.add_argument("output", nargs="?", help="Path to the output PDF file.")
-    args = parser.parse_args()
-
-    # Ensure required arguments are provided
-    args.input = need(args.input, "Input glob pattern", parser)
-    args.output = need(args.output, "Output PDF path", parser)
-
-    return args
-
 # MAIN
 # ----
 
-def main():
-    """Main function to parse arguments and run the PDF creation."""
-    args = parse_args()
-
-    # Get and sort the input files
-    input_files = sorted(glob.glob(args.input))
-
-    if not input_files:
-        print(f"Error: No input files found for pattern '{args.input}'", file=sys.stderr)
-        sys.exit(1)
-
-    create_pdf(input_files, args.output)
-
 # The main entrypoint of the script
 if __name__ == "__main__":
-    if '--help' in sys.argv or '-h' in sys.argv:
-        print(__doc__)
-        sys.exit(0)
-
-    try:
-        main()
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+    main.run()
