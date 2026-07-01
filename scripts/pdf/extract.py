@@ -1,28 +1,13 @@
 """
-A script to extract text, images, and metadata from PDF files.
-
-Usage:
-```sh
-python scripts/pdf/extract.py <input> <output> [-h] [--images] [--metadata]
-```
-
-Arguments:
-- `input`: Path to the input PDF file or a glob pattern for multiple files.
-- `output`: Path to the output directory to save the extracted content.
-- `--images`: Extract images from the PDF files.
-- `--metadata`: Extract metadata from the PDF files.
-
-Example:
-```sh
-python scripts/pdf/extract.py "docs/*.pdf" "extracted_content/" --images --metadata
-```
+A script to extract text, images, and metadata from PDF files
 """
 
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
 #   "pypdf",
-#   "pillow"
+#   "pillow",
+#   "defcmd @ git+https://github.com/Shresht7/defcmd.git@v0.5.1"
 # ]
 # ///
 
@@ -30,11 +15,11 @@ python scripts/pdf/extract.py "docs/*.pdf" "extracted_content/" --images --metad
 # Library
 import os
 import sys
-import argparse
 import glob
 import json
-
+from defcmd import cmd, Spec
 from pypdf import PdfReader
+from typing import Annotated
 
 # EXTRACT TEXT
 # ------------
@@ -153,100 +138,45 @@ def extract_metadata(input_path: str, output_dir: str):
 # MAIN
 # ----
 
-def need(value: str | None, label: str, parser: argparse.ArgumentParser) -> str:
-    """Ensure a required value is provided, either as an argument or through user input."""
-    if value:
-        return value
-
-    if not sys.stdin.isatty():
-        parser.error(f"Missing required argument: {label}")
-
-    entered = input(f"{label}: ").strip()
-    if not entered:
-        parser.error(f"Missing required argument: {label}")
-
-    return entered
-
-
-def ask_optional_bool(label: str) -> bool:
-    """Prompt for an optional yes/no value, defaulting to no when left blank."""
-    entered = input(f"{label}? [y/N]: ").strip().lower()
-    if not entered:
-        return False
-    if entered in {"y", "yes"}:
-        return True
-    if entered in {"n", "no"}:
-        return False
-
-    print(f"Error: {label} must be answered with y or n", file=sys.stderr)
-    sys.exit(1)
-
-def parse_args():
-    should_prompt_for_optional = len(sys.argv) == 1
-
-    parser = argparse.ArgumentParser(
-        description="Extract text, images, and metadata from PDF files.",
-        epilog="Example: python extract.py \"docs/*.pdf\" extracted_content/ --images --metadata",
-    )
-    parser.add_argument("input", nargs="?", help="Path to the input PDF file or a glob pattern for multiple files.")
-    parser.add_argument("output", nargs="?", help="Path to the output directory to save the extracted content.")
-    parser.add_argument("--images", action="store_true", help="Extract images from the PDF files.")
-    parser.add_argument("--metadata", action="store_true", help="Extract metadata from the PDF files.")
-    args = parser.parse_args()
-
-    args.input = need(args.input, "Input PDF path or glob pattern", parser)
-    args.output = need(args.output, "Output directory", parser)
-
-    if should_prompt_for_optional:
-        if not args.images:
-            args.images = ask_optional_bool("Extract images")
-        if not args.metadata:
-            args.metadata = ask_optional_bool("Extract metadata")
-
-    return args
-
-def main():
-    """Main function to parse arguments and run the extraction."""
-    args = parse_args()
+@cmd(epilog="Example: python extract.py \"docs/*.pdf\" extracted_content/ --images --metadata")
+def main(
+        input: Annotated[str, Spec(help="Path or glob pattern for input PDF files")],
+        output: Annotated[str, Spec(help="Path to the output directory to save the extracted content")],
+        images: Annotated[bool, Spec(help="Extract images from the PDF files")] = True,
+        metadata: Annotated[bool, Spec(help="Extract metadata from the PDF files")] = True,
+    ):
+    """Extract text, images, and metadata from PDF files"""
 
     # Get a list of input files
-    input_files = glob.glob(args.input)
+    input_files = glob.glob(input)
 
     # Check if any files were found
     if not input_files:
-        print(f"Error: No input files found for pattern '{args.input}'", file=sys.stderr)
+        print(f"Error: No input files found for pattern '{input}'", file=sys.stderr)
         sys.exit(1)
 
     # Create the output directory if it doesn't exist
-    os.makedirs(args.output, exist_ok=True)
+    os.makedirs(output, exist_ok=True)
 
     # Process each file
     for input_file in input_files:
         if input_file.lower().endswith(".pdf"):
             # Extract text
-            extract_text(input_file, args.output)
+            extract_text(input_file, output)
 
             # Extract images if requested
-            if args.images:
+            if images:
                 basename = os.path.basename(input_file)
                 filename, _ = os.path.splitext(basename)
-                image_output_dir = os.path.join(args.output, filename)
+                image_output_dir = os.path.join(output, filename)
                 extract_images_from_pdf(input_file, image_output_dir)
 
             # Extract metadata if requested
-            if args.metadata:
-                extract_metadata(input_file, args.output)
+            if metadata:
+                extract_metadata(input_file, output)
         else:
             print(f"Skipping non-PDF file: '{input_file}'", file=sys.stderr)
 
 # The main entrypoint of the script
 if __name__ == "__main__":
-    if '--help' in sys.argv or '-h' in sys.argv:
-        print(__doc__)
-        sys.exit(0)
-
-    try:
-        main()
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+    main.run()
