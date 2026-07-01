@@ -1,3 +1,5 @@
+#!/usr/bin/env -S uv run
+
 """
 A script to convert images from one format to another, with options for resizing and quality control
 """

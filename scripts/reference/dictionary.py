@@ -1,3 +1,5 @@
+#!/usr/bin/env -S uv run
+
 """
 Lookup a word definition using the Free Dictionary API (https://dictionaryapi.dev/)
 """

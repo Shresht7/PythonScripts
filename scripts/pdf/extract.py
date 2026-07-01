@@ -1,3 +1,5 @@
+#!/usr/bin/env -S uv run
+
 """
 A script to extract text, images, and metadata from PDF files
 """

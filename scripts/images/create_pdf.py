@@ -1,3 +1,5 @@
+#!/usr/bin/env -S uv run
+
 """
 A script to create a PDF file from a collection of images
 """
