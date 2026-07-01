@@ -1,0 +1,13 @@
+# For developer tooling only. Each script declares its own dependencies via inline script metadata (PEP 723).
+# Run `uv sync` to install all script dependencies into .venv for IDE support (autocomplete, type checking, linting).
+
+[project]
+name = "python-scripts"
+version = "0.2.0"
+requires-python = ">=3.12"
+
+[tool.uv.sources]
+defcmd = { git = "https://github.com/Shresht7/defcmd.git", tag = "v0.5.1" }
+
+[dependency-groups]
+dev = ["defcmd", "pillow", "pypdf", "requests", "pyserial"]
