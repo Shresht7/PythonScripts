@@ -5,7 +5,8 @@ Lookup a word definition using the Free Dictionary API (https://dictionaryapi.de
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#   "requests"  
+#   "requests",
+#   "defcmd @ git+https://github.com/Shresht7/defcmd.git@v0.5.1"
 # ]
 # ///
 
@@ -13,11 +14,13 @@ import sys
 import os
 import requests
 import json
+from defcmd import cmd, Spec
+from typing import Literal, Annotated
+
 
 def lookup(word: str):
-    """
-    Looks up the definition of a word using the Free Dictionary API.
-    """
+    """Looks up the definition of a word using the Free Dictionary API"""
+ 
     api_url=f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
     response = requests.get(api_url)
 
@@ -28,10 +31,10 @@ def lookup(word: str):
 
     return response.json()
 
+
 def print_definitions(entry):
-    """
-    Prints the definitions of a word entry.
-    """
+    """Prints the definitions of a word entry"""
+
     word = entry.get("word", "")
     phonetics = entry.get("phonetics", [])
     meanings = entry.get("meanings", [])
@@ -60,6 +63,7 @@ def print_definitions(entry):
                 print(f"   {DIM}antonyms: {RED}{', '.join(antonyms)}{RESET}")
     print()
 
+
 # ANSI Escape Codes
 BOLD="\033[1m"
 DIM="\033[2m"
@@ -73,45 +77,40 @@ CYAN="\033[36m"
 MAGENTA="\033[35m"
 RESET="\033[0m"
 
+
 # MAIN
 # ----
 
-def extract_word(args):
-    """
-    Extracts the word to lookup from command-line arguments.
-    """
-    for arg in args:
-        if not arg.startswith('-'):
-            return arg
-    return None
-
-if __name__ == "__main__":
-    # Check for help flag
-    if '--help' in sys.argv or '-h' in sys.argv:
-        print(__doc__)
-        sys.exit(0)
-
-    # Extract the word to lookup from command-line arguments or prompt the user
-    word = extract_word(sys.argv[1:]) or input("lookup: ").strip()
+@cmd
+def dictionary(
+        word:   Annotated[str,                              Spec(help="The word to look up"                         )], 
+        format: Annotated[Literal["text", "raw", "json"],   Spec(help="The output format",              prompt=False)]  = "text", 
+        color:  Annotated[bool,                             Spec(help="Enable or disable color output", prompt=False)]  = True
+    ):
+    """Command-line interface to look up word definitions using the Free Dictionary API"""
 
     # Lookup the word and get the api results
     result = lookup(word)
 
     # Print the result in JSON format if requested
-    if '--json' in sys.argv or '-j' in sys.argv:
+    if format == "json":
         print(json.dumps(result, indent=2))
-        sys.exit(0)
-
+        return
+    
     # Print the raw result if requested
-    if '--raw' in sys.argv or '-r' in sys.argv:
+    if format == "raw":
         print(result)
-        sys.exit(0)
-
+        return
+    
     # Disable color if requested or if output is not a terminal
-    if '--no-color' in sys.argv or '-n' in sys.argv or os.environ.get('NO_COLOR') or not sys.stdout.isatty():
-        # Override ANSI codes with empty strings
+    if not color or not sys.stdout.isatty() or os.environ.get("NO_COLOR") is not None:
+        global BOLD, DIM, ITALIC, UNDERLINE, INVERT, RED, GREEN, YELLOW, CYAN, MAGENTA, RESET
         BOLD = DIM = ITALIC = UNDERLINE = INVERT = RED = GREEN = YELLOW = CYAN = MAGENTA = RESET = ""
 
     # Print the result
     for entry in result:
         print_definitions(entry)
+
+
+if __name__ == "__main__":
+    dictionary.run()
