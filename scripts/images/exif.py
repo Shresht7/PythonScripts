@@ -1,39 +1,58 @@
+#!/usr/bin/env -S uv run
+
 """
-A script to extract EXIF information from an image.
-
-Usage:
-```sh
-python scripts/images/exif.py <input> [-f FORMAT]
-```
-
-Arguments:
-- `input`: Path to the input image file.
-- `-f, --format FORMAT`: The output format to use (e.g., `json` or `txt`).
-
-Example:
-```sh
-python scripts/images/exif.py "images/my_photo.jpg" --format json
-```
+A script to extract EXIF information from an image
 """
 
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.12"
 # dependencies = [
-#   "pillow"
+#   "pillow",
+#   "defcmd @ git+https://github.com/Shresht7/defcmd.git@v0.5.1"
 # ]
 # ///
 
-
 # Library
 import sys
-import argparse
-import json
-
 from PIL import Image
 from PIL.ExifTags import TAGS
+import json
+from defcmd import cmd, Spec
+from typing import Literal, Annotated
+from pathlib import Path
 
 # EXIF
 # ----
+
+@cmd
+def main(
+        path: Annotated[Path, Spec(
+            help="Path to the image file",
+            validate=lambda p: p.is_file()
+        )],
+        
+        format: Annotated[Literal["json", "text"], Spec(
+            short="f",
+            help="The output format for EXIF information",
+        )] = "text",
+    ):
+
+    """Extract EXIF information from an image"""
+
+    # Extract EXIF info from the image
+    exif_info = exif(str(path))
+
+    # If no EXIF info is found, exit silently
+    if not exif_info:
+        return
+
+    # Output the EXIF info in the desired format    
+    if format == "json":
+        print(json.dumps(exif_info, indent=4))
+    else:
+        for tag, value in exif_info.items():
+            print(f"{tag}: {value}")
+
 
 def exif(path: str):
     """
@@ -70,38 +89,10 @@ def exif(path: str):
 # MAIN
 # ----
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Extract EXIF information from an image.",
-        epilog="Example: python exif.py image.jpg",
-    )
-    parser.add_argument("input", help="Path to the input image file.")
-    parser.add_argument('-f', '--format', help="The output format to use. (e.g. json or txt)")
-    return parser.parse_args()
-
-def main():
-    """Main function to parse arguments and extract EXIF information"""
-    args = parse_args()
-
-    info = exif(args.input)
-    
-    if info:
-        if args.format == "json":
-            print(json.dumps(info, indent=4))
-        else:
-            for tag, value in info.items():
-                print(f"{tag}: {value}")
-
-
 # The main entrypoint of the script
 if __name__ == "__main__":
-    if '--help' in sys.argv or '-h' in sys.argv:
-        print(__doc__)
-        sys.exit(0)
-
     try:
-        main()
+        main.run()
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
-

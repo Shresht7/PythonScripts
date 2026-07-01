@@ -1,38 +1,26 @@
+#!/usr/bin/env -S uv run
+
 """
-A script to convert images from one format to another, with options for resizing and quality control.
-
-Usage:
-```sh
-python scripts/images/convert.py <input> <output> [-h] [-f FORMAT] [--resize RESIZE] [--quality QUALITY]
-```
-
-Arguments:
-- `input`: Path to the input image file or a glob pattern for multiple files.
-- `output`: Path to save the converted image or a directory for bulk conversion.
-- `-f, --format FORMAT`: The output format for bulk conversion (e.g., `png`, `jpg`).
-- `--resize RESIZE`: Resize the output image to a specific width (maintaining aspect ratio).
-- `--quality QUALITY`: Set the quality of the output image (1-100, for JPEG).
-
-Example:
-```sh
-python scripts/images/convert.py "images/*.jpg" "converted/" --format png --resize 800 --quality 85
-```
+A script to convert images from one format to another, with options for resizing and quality control
 """
 
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.12"
 # dependencies = [
-#   "pillow"
+#   "pillow",
+#  "defcmd @ git+https://github.com/Shresht7/defcmd.git@v0.5.1"
 # ]
 # ///
 
 # Library
 import os
 import sys
-import argparse
+from defcmd import cmd, Spec
 import glob
 
 from PIL import Image
+
+from typing import Literal, Annotated
 
 # CONVERT IMAGE
 # -------------
@@ -86,49 +74,48 @@ def convert_image(input: str, output: str, resize: int | None = None, quality: i
 # MAIN
 # ----
 
-def parse_args():
-    """Parses the command-line arguments"""
-    parser = argparse.ArgumentParser(
-        description="Convert an image from one format to another. Can also handle bulk conversion using glob patterns.",
-    )
-    parser.add_argument("input", help="Path to the input image file or a glob pattern for multiple files.")
-    parser.add_argument("output", help="Path to save the converted image or a directory for bulk conversion.")
-    parser.add_argument("-f", "--format", help="The output format to use for bulk conversion (e.g., png, jpg).")
-    parser.add_argument("-r", "--resize", type=int, help="Resize the output image to a specific width (maintaining aspect ratio).")
-    parser.add_argument("-q", "--quality", type=int, help="Set the quality of the output image (1-100, for JPEG).")
-    return parser.parse_args()
-
-def main():
+@cmd(epilog="Example: python scripts/images/convert.py 'images/*.jpg' 'converted/' --format png --resize 800 --quality 85")
+def main(
+        input: Annotated[str, Spec(help="Path to the input image file or a glob pattern for multiple files.")],
+        output: Annotated[str, Spec(help="Path to save the converted image or a directory for bulk conversion.")],
+        format: Annotated[Literal["png", "jpg", "jpeg", "bmp", "gif"] | None, Spec(short="f", help="The output format for bulk conversion.")] = None,
+        resize: Annotated[int | None, Spec(short="r", help="Resize the output image to a specific width (maintaining aspect ratio).", prompt=False)] = None,
+        quality: Annotated[int | None, Spec(short="q", help="Set the quality of the output image (1-100, for JPEG).", prompt=False)] = None
+):
     """Main function to parse arguments and run the conversion"""
-    args = parse_args()
 
     # Get a list of files to convert
-    input_files = glob.glob(args.input)
+    input_files = glob.glob(input)
 
     # Check if any files were found
     if not input_files:
-        print(f"Error: No input files found for pattern '{args.input}'", file=sys.stderr)
+        print(f"Error: No input files found for pattern '{input}'", file=sys.stderr)
         sys.exit(1)
 
-    # If the output is a directory, bulk convert
-    if os.path.isdir(args.output):
+    bulk_output = os.path.isdir(output) or len(input_files) > 1
 
-        # Make sure the format is specified
-        if not args.format:
+    # If the output is a directory, bulk convert
+    if bulk_output:
+
+        if os.path.exists(output) and not os.path.isdir(output):
+            print(f"Error: Output path exists and is not a directory: '{output}'", file=sys.stderr)
+            sys.exit(1)
+
+        if not format:
             print("Error: Output format must be specified with --format for bulk conversion", file=sys.stderr)
             sys.exit(1)
 
         # Create the output directory if it doesn't exist
-        os.makedirs(args.output, exist_ok=True)
+        os.makedirs(output, exist_ok=True)
 
         # Convert each file
         for input_path in input_files:
             # Create the output path
             basename = os.path.basename(input_path)
             filename, _ = os.path.splitext(basename)
-            output_path = os.path.join(args.output, f"{filename}.{args.format}")
+            output_path = os.path.join(output, f"{filename}.{format}")
             # Convert the image
-            convert_image(input_path, output_path, args.resize, args.quality)
+            convert_image(input_path, output_path, resize, quality)
 
         return
 
@@ -138,16 +125,12 @@ def main():
         sys.exit(1)
 
     # Otherwise, convert the single file
-    convert_image(input_files[0], args.output, args.resize, args.quality)
+    convert_image(input_files[0], output, resize, quality)
 
 # The main entrypoint of the script
 if __name__ == "__main__":
-    if '--help' in sys.argv or '-h' in sys.argv:
-        print(__doc__)
-        sys.exit(0)
-
     try:
-        main()
+        main.run()
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
