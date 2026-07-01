@@ -13,7 +13,6 @@ A script to convert images from one format to another, with options for resizing
 # Library
 import os
 import sys
-import argparse
 from defcmd import cmd, Spec
 import glob
 
