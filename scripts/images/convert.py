@@ -127,4 +127,8 @@ def main(
 
 # The main entrypoint of the script
 if __name__ == "__main__":
-    main.run()
+    try:
+        main.run()
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
