@@ -3,7 +3,7 @@ A script to extract text, images, and metadata from PDF files
 """
 
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.12"
 # dependencies = [
 #   "pypdf",
 #   "pillow",
