@@ -76,9 +76,9 @@ def convert_image(input: str, output: str, resize: int | None = None, quality: i
 def main(
         input: Annotated[str, Spec(help="Path to the input image file or a glob pattern for multiple files.")],
         output: Annotated[str, Spec(help="Path to save the converted image or a directory for bulk conversion.")],
-        format: Annotated[Literal["png", "jpg", "jpeg", "bmp", "gif"], Spec(help="The output format for bulk conversion.")],
-        resize: Annotated[int | None, Spec(help="Resize the output image to a specific width (maintaining aspect ratio).", prompt=False)] = None,
-        quality: Annotated[int | None, Spec(help="Set the quality of the output image (1-100, for JPEG).", prompt=False)] = None
+        format: Annotated[Literal["png", "jpg", "jpeg", "bmp", "gif"] | None, Spec(short="f", help="The output format for bulk conversion.")] = None,
+        resize: Annotated[int | None, Spec(short="r", help="Resize the output image to a specific width (maintaining aspect ratio).", prompt=False)] = None,
+        quality: Annotated[int | None, Spec(short="q", help="Set the quality of the output image (1-100, for JPEG).", prompt=False)] = None
 ):
     """Main function to parse arguments and run the conversion"""
 
@@ -97,6 +97,10 @@ def main(
 
         if os.path.exists(output) and not os.path.isdir(output):
             print(f"Error: Output path exists and is not a directory: '{output}'", file=sys.stderr)
+            sys.exit(1)
+
+        if not format:
+            print("Error: Output format must be specified with --format for bulk conversion", file=sys.stderr)
             sys.exit(1)
 
         # Create the output directory if it doesn't exist
