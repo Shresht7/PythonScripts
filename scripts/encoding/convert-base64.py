@@ -17,7 +17,7 @@ from defcmd import CLI
 
 cli = CLI(description=__doc__)
 
-@cli.subcmd(prompt_optional=False)
+@cli.subcmd(aliases=["enc"], prompt_optional=False)
 def encode(data: str, url_safe: bool = False):
     """Encode data in Base64"""
     bytes = data.encode('utf-8')
@@ -25,7 +25,7 @@ def encode(data: str, url_safe: bool = False):
     encoded_data = encoder(bytes).decode('utf-8')
     print(encoded_data)
 
-@cli.subcmd(prompt_optional=False)
+@cli.subcmd(aliases=["dec"], prompt_optional=False)
 def decode(data: str, url_safe: bool = False):
     """Decode Base64 data"""
     bytes = data.encode('utf-8')
