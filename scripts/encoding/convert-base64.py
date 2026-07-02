@@ -11,6 +11,7 @@ Encode and decode data with Base64
 # ]
 # ///
 
+import sys
 import base64
 from defcmd import CLI
 
@@ -37,6 +38,9 @@ def decode(data: str, url_safe: bool = False):
 if __name__ == "__main__":
     try:
         cli.run()
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.", file=sys.stderr)
+        sys.exit(1)
     except Exception as e:
-        print(f"Error: {e}")
-        exit(1)
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
