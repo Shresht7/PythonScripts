@@ -39,9 +39,10 @@ python scripts/<path/to/script>.py <arguments>
 
 ### Reference
 
-| Script                    | Description                                          |
-| ------------------------- | ---------------------------------------------------- |
-| `reference/dictionary.py` | Look up word definitions via the Free Dictionary API |
+| Script                      | Description                                          |
+| --------------------------- | ---------------------------------------------------- |
+| `reference/dictionary.py`   | Look up word definitions via the Free Dictionary API |
+| `reference/unicode.py`      | Inspect and search Unicode characters                |
 
 ### Utility
 
